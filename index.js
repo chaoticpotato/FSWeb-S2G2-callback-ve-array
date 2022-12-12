@@ -103,28 +103,128 @@ function OrtalamaGolSayisi(/* kodlar buraya */) {
 
 /// EKSTRA ÇALIŞMALAR ///
 
+function varsaArttirYoksaEkle(obj, str, value) {
+	// bu fonksiyon, gönderilen str değeri obj içerisinde key olarak varsa, value değerini mevcut değere ekliyor
+	// yoksa, yeni key yaratıp değerini value olarak belirliyor
+
+	// örnek:
+	// önce : obj = { Brazil: 4, Turkey: 2 }, str = "France", value = 5
+	// sonra: obj = { Brazil: 4, Turkey: 2, France: 5 }
+
+	// örnek:
+	// önce : obj = { Brazil: 4, Turkey: 2, France: 5 }, str = "Turkey", value = 6
+	// sonra: obj = { Brazil: 4, Turkey: 8, France: 5 }
+	if (obj[str]) {
+		obj[str] = obj[str] + value
+	} else {
+		obj[str] = value
+	}
+}
+
+function objedekiEnBuyukValueHangiKeyeAit(obj) {
+	const degerlerArr = Object.values(obj);
+	const keysArr = Object.keys(obj);
+	let enBuyugunIndeksi = 0;
+	for (let t = 0; t < degerlerArr.length; t++) {
+		if (degerlerArr[t] >= degerlerArr[enBuyugunIndeksi]) {
+			enBuyugunIndeksi = t;
+		}
+	}
+	return keysArr[enBuyugunIndeksi];
+}
+
 /*  BONUS 1:  
 	`UlkelerinKazanmaSayilari` isminde bir fonksiyon oluşturun, parametre olarak `data` ve `takım kısaltmalarını` alacak ve hangi ülkenin kaç dünya kupası olduğunu döndürecek
 	
 	İpucu: "takım kısaltmaları" (team initials) için datada araştırma yapın!
 İpucu: `.reduce` Kullanın*/
 
-function UlkelerinKazanmaSayilari(/* kodlar buraya */) {
-	
-    /* kodlar buraya */
-	
+function kazananinKisaltmasi(mac) {
+	let kazananKisaltmasi = "";
+	if (mac["Home Team Goals"] > mac["Away Team Goals"]) {
+		kazananKisaltmasi = mac["Home Team Initials"];
+	} else if (mac["Home Team Goals"] < mac["Away Team Goals"]) {
+		kazananKisaltmasi = mac["Away Team Initials"];
+	} else {
+		// berabere biten maclar
+		const kazananAdi = mac["Win conditions"].split(" ")[0]
+		if (kazananAdi === mac["Away Team Name"]) {
+			kazananKisaltmasi = mac["Away Team Initials"]
+		} else {
+			kazananKisaltmasi = mac["Home Team Initials"]
+		}
+	}
+	return kazananKisaltmasi;
 }
+
+function UlkelerinKazanmaSayilari(macArr, kisaltma) {
+	const sonuc = {};
+
+	// tüm veriden stage değeri final olan maçları filtreledim
+	const finalMaclari = macArr.filter(mac => mac["Stage"] === "Final");
+	const kazananlar = finalMaclari.map(mac => kazananinKisaltmasi(mac));
+
+	for (let m = 0; m < kazananlar.length; m++) {
+		varsaArttirYoksaEkle(sonuc, kazananlar[m], 1)
+	}
+
+	return (sonuc[kisaltma])
+
+	/* kodlar buraya */
+
+}
+
+console.log("BRA kısaltmasına sahip ülkenin dünya kupası sayısı: ", UlkelerinKazanmaSayilari(fifaData, "BRA"));
 
 
 
 /*  BONUS 2:  
 EnCokGolAtan() isminde bir fonksiyon yazın, `data` yı parametre olarak alsın ve Dünya kupası finallerinde en çok gol atan takımı döndürsün */
 
-function EnCokGolAtan(/* kodlar buraya */) {
-	
-    /* kodlar buraya */
-	
+function EnCokGolAtan(macArr) {
+	/* boş bir obje oluşturuyorum, objeyi sonrasında şu şekilde doldurmak istiyorum:
+	takimlarVeGoller = {
+		Brazil: 21,
+		Turkey: 15,
+		France: 30
+	}
+	*/
+	let takimlarVeGoller = {};
+
+
+	// tüm veriden stage değeri final olan maçları filtreledim
+	const finalMaclari = macArr.filter(mac => mac["Stage"] === "Final");
+
+
+	for (let k = 0; k < finalMaclari.length; k++) {
+		// final maçları arrayinin her bir elemanı yine bir final maçı
+		const finalMacininBiri = finalMaclari[k];
+
+		// bu maçtaki home takımın adı, örneğin "France"
+		const buMactakiTakim_home = finalMacininBiri["Home Team Name"];
+
+		// bu maçta home takımın attığı gol, örneğin 4
+		const buMactakiTakim_homeGoal = finalMacininBiri["Home Team Goals"];
+
+		// bu maçtaki away takımın adı, örneğin "Brazil"
+		const buMactakiTakim_away = finalMacininBiri["Away Team Name"];
+
+		// bu maçta away takımın attığı gol, örneğin 1
+		const buMactakiTakim_awayGoal = finalMacininBiri["Away Team Goals"];
+
+
+		// yukarıda bir yardımcı fonksiyon tanımladım
+		// takimlarVeGoller objesine takım adı ve golünü eklemek için kullanıyorum
+		// eğer takimlarVeGoller objesinde key olarak takım adı zaten varsa, gol sayısına ekleme yapacak
+		// ama yoksa, key olarak takım adını key olarak oluşturup değerini gol sayısına eşitleyecek
+		varsaArttirYoksaEkle(takimlarVeGoller, buMactakiTakim_home, buMactakiTakim_homeGoal);
+		varsaArttirYoksaEkle(takimlarVeGoller, buMactakiTakim_away, buMactakiTakim_awayGoal);
+	}
+
+	return objedekiEnBuyukValueHangiKeyeAit(takimlarVeGoller);
 }
+
+console.log("Dünya kupası finallerinde en çok gol atan takım:", EnCokGolAtan(fifaData));
 
 
 /*  BONUS 3: 
